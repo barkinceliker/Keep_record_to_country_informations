@@ -9,110 +9,114 @@ typedef struct {
     double spending;
 } STRENGTH;
 
-// Structure to represent a country record
-typedef struct Node {
-    char countryName[50];
+// Structure to represent each city
+typedef struct cityRecord {
+    char cityName[50];
     int population;
     STRENGTH economicStrength;
-    struct Node* left;
-    struct Node* right;
+    struct cityRecord* left;
+    struct cityRecord* right;
     int height;
-} COUNTRYRECORD;
+} CITYRECORD;
 
-// Function to get the height of a node
-int getHeight(COUNTRYRECORD* node) {
+// Function to get the maximum of two integers
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Function to calculate the height of a node
+int getHeight(CITYRECORD* node) {
     if (node == NULL)
         return 0;
     return node->height;
 }
 
-// Function to get the maximum of two numbers
-int max(int a, int b) {
-    return (a > b) ? a : b;
-}
-
-// Function to create a new country node
-COUNTRYRECORD* createNode(char* countryName, int population, double budget, double income, double spending) {
-    COUNTRYRECORD* newNode = (COUNTRYRECORD*)malloc(sizeof(COUNTRYRECORD));
-    strcpy(newNode->countryName, countryName);
-    newNode->population = population;
-    newNode->economicStrength.budget = budget;
-    newNode->economicStrength.income = income;
-    newNode->economicStrength.spending = spending;
-    newNode->left = NULL;
-    newNode->right = NULL;
-    newNode->height = 1;
-    return newNode;
-}
-
-// Function to perform a right rotation
-COUNTRYRECORD* rotateRight(COUNTRYRECORD* y) {
-    COUNTRYRECORD* x = y->left;
-    COUNTRYRECORD* T2 = x->right;
-
-    x->right = y;
-    y->left = T2;
-
-    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
-    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
-
-    return x;
-}
-
-// Function to perform a left rotation
-COUNTRYRECORD* rotateLeft(COUNTRYRECORD* x) {
-    COUNTRYRECORD* y = x->right;
-    COUNTRYRECORD* T2 = y->left;
-
-    y->left = x;
-    x->right = T2;
-
-    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
-    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
-
-    return y;
-}
-
-// Function to get the balance factor of a node
-int getBalance(COUNTRYRECORD* node) {
+// Function to calculate the balance factor of a node
+int getBalance(CITYRECORD* node) {
     if (node == NULL)
         return 0;
     return getHeight(node->left) - getHeight(node->right);
 }
 
-// Function to insert a country into the AVL tree
-COUNTRYRECORD* insertCountry(COUNTRYRECORD* node, char* countryName, int population, double budget, double income, double spending) {
-    if (node == NULL)
-        return createNode(countryName, population, budget, income, spending);
+// Function to perform a right rotation
+CITYRECORD* rotateRight(CITYRECORD* y) {
+    CITYRECORD* x = y->left;
+    CITYRECORD* T2 = x->right;
 
-    if (strcmp(countryName, node->countryName) < 0)
-        node->left = insertCountry(node->left, countryName, population, budget, income, spending);
-    else if (strcmp(countryName, node->countryName) > 0)
-        node->right = insertCountry(node->right, countryName, population, budget, income, spending);
-    else {
-        node->population = population;
-        node->economicStrength.budget = budget;
-        node->economicStrength.income = income;
-        node->economicStrength.spending = spending;
-        return node;
+    // Perform rotation
+    x->right = y;
+    y->left = T2;
+
+    // Update heights
+    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+
+    // Return the new root
+    return x;
+}
+
+// Function to perform a left rotation
+CITYRECORD* rotateLeft(CITYRECORD* x) {
+    CITYRECORD* y = x->right;
+    CITYRECORD* T2 = y->left;
+
+    // Perform rotation
+    y->left = x;
+    x->right = T2;
+
+    // Update heights
+    x->height = max(getHeight(x->left), getHeight(x->right)) + 1;
+    y->height = max(getHeight(y->left), getHeight(y->right)) + 1;
+
+    // Return the new root
+    return y;
+}
+
+// Function to insert a city into the AVL tree
+CITYRECORD* insertCity(CITYRECORD* node, char* cityName, int population, double budget, double income, double spending) {
+    // Perform the normal BST insertion
+    if (node == NULL) {
+        CITYRECORD* newNode = (CITYRECORD*)malloc(sizeof(CITYRECORD));
+        strcpy(newNode->cityName, cityName);
+        newNode->population = population;
+        newNode->economicStrength.budget = budget;
+        newNode->economicStrength.income = income;
+        newNode->economicStrength.spending = spending;
+        newNode->left = NULL;
+        newNode->right = NULL;
+        newNode->height = 1;
+        return newNode;
     }
 
+    if (strcmp(cityName, node->cityName) < 0)
+        node->left = insertCity(node->left, cityName, population, budget, income, spending);
+    else if (strcmp(cityName, node->cityName) > 0)
+        node->right = insertCity(node->right, cityName, population, budget, income, spending);
+    else
+        return node; // Duplicate keys are not allowed
+
+    // Update the height of the current node
     node->height = 1 + max(getHeight(node->left), getHeight(node->right));
 
+    // Check the balance factor and perform rotations if needed
     int balance = getBalance(node);
 
-    if (balance > 1 && strcmp(countryName, node->left->countryName) < 0)
+    // Left Left Case
+    if (balance > 1 && strcmp(cityName, node->left->cityName) < 0)
         return rotateRight(node);
 
-    if (balance < -1 && strcmp(countryName, node->right->countryName) > 0)
+    // Right Right Case
+    if (balance < -1 && strcmp(cityName, node->right->cityName) > 0)
         return rotateLeft(node);
 
-    if (balance > 1 && strcmp(countryName, node->left->countryName) > 0) {
+    // Left Right Case
+    if (balance > 1 && strcmp(cityName, node->left->cityName) > 0) {
         node->left = rotateLeft(node->left);
         return rotateRight(node);
     }
 
-    if (balance < -1 && strcmp(countryName, node->right->countryName) < 0) {
+    // Right Left Case
+    if (balance < -1 && strcmp(cityName, node->right->cityName) < 0) {
         node->right = rotateRight(node->right);
         return rotateLeft(node);
     }
@@ -120,162 +124,155 @@ COUNTRYRECORD* insertCountry(COUNTRYRECORD* node, char* countryName, int populat
     return node;
 }
 
-// Function to find the richest country in the AVL tree
-COUNTRYRECORD* findRichestCountry(COUNTRYRECORD* node, COUNTRYRECORD* maxCountry) {
-    if (node == NULL)
-        return maxCountry;
-
-    if (((node->economicStrength.income - node->economicStrength.spending) / node->population) >
-        ((maxCountry->economicStrength.income - maxCountry->economicStrength.spending) / maxCountry->population))
-        maxCountry = node;
-
-    maxCountry = findRichestCountry(node->left, maxCountry);
-    maxCountry = findRichestCountry(node->right, maxCountry);
-
-    return maxCountry;
-}
-
-// Function to display all countries in the AVL tree
-void displayCountries(COUNTRYRECORD* node) {
-    if (node == NULL)
-        return;
-
-    displayCountries(node->left);
-
-    printf("Country Name: %s\n", node->countryName);
-    printf("Population: %d\n", node->population);
-    printf("Budget: %.2lf\n", node->economicStrength.budget);
-    printf("Income: %.2lf\n", node->economicStrength.income);
-    printf("Spending: %.2lf\n\n", node->economicStrength.spending);
-
-    displayCountries(node->right);
-}
-
-// Function to write country records to a file
-void writeRecordsToFile(FILE* file, COUNTRYRECORD* node) {
-    if (node == NULL)
-        return;
-
-    writeRecordsToFile(file, node->left);
-    fprintf(file, "%s %d %.2lf %.2lf %.2lf\n", node->countryName, node->population, node->economicStrength.budget, node->economicStrength.income, node->economicStrength.spending);
-    writeRecordsToFile(file, node->right);
-}
-
-// Function to read country records from a file
-COUNTRYRECORD* readRecordsFromFile(FILE* file) {
-    COUNTRYRECORD* root = NULL;
-    char countryName[50];
-    int population;
-    double budget, income, spending;
-
-    while (fscanf(file, "%s %d %lf %lf %lf\n", countryName, &population, &budget, &income, &spending) == 5) {
-        root = insertCountry(root, countryName, population, budget, income, spending);
+// Function to write city records to a file
+void writeRecordsToFile(FILE* file, CITYRECORD* node) {
+    if (node != NULL) {
+        writeRecordsToFile(file, node->left);
+        fprintf(file, "%s\n", node->cityName);
+        fprintf(file, "%d\n", node->population);
+        fprintf(file, "%.2f\n", node->economicStrength.budget);
+        fprintf(file, "%.2f\n", node->economicStrength.income);
+        fprintf(file, "%.2f\n", node->economicStrength.spending);
+        writeRecordsToFile(file, node->right);
     }
-
-    return root;
 }
 
-// Function to free the memory of the AVL tree
-void freeTree(COUNTRYRECORD* node) {
-    if (node == NULL)
-        return;
-
-    freeTree(node->left);
-    freeTree(node->right);
-    free(node);
-}
-
-int main() {
-    int choice;
-    int numCountries;
-    COUNTRYRECORD* root = NULL;
-
-    printf("Enter the number of countries: ");
-    scanf("%d", &numCountries);
-
-    for (int i = 0; i < numCountries; i++) {
-        printf("Enter information for Country %d:\n", i + 1);
-        char countryName[50];
+// Function to read city records from a file
+CITYRECORD* readRecordsFromFile(FILE* file, CITYRECORD* node) {
+    if (!feof(file)) {
+        char cityName[50];
         int population;
         double budget, income, spending;
 
-        printf("Country Name: ");
-        scanf("%s", countryName);
-        printf("Population: ");
-        scanf("%d", &population);
-        printf("Budget: ");
-        scanf("%lf", &budget);
-        printf("Income: ");
-        scanf("%lf", &income);
-        printf("Spending: ");
-        scanf("%lf", &spending);
+        fgets(cityName, sizeof(cityName), file);
+        cityName[strcspn(cityName, "\n")] = '\0';
 
-        root = insertCountry(root, countryName, population, budget, income, spending);
+        fscanf(file, "%d\n", &population);
+        fscanf(file, "%lf\n", &budget);
+        fscanf(file, "%lf\n", &income);
+        fscanf(file, "%lf\n", &spending);
+
+        node = insertCity(node, cityName, population, budget, income, spending);
+        node->left = readRecordsFromFile(file, node->left);
+        node->right = readRecordsFromFile(file, node->right);
+    }
+
+    return node;
+}
+
+// Function to display city records in-order
+void displayCities(CITYRECORD* node) {
+    if (node != NULL) {
+        displayCities(node->left);
+        printf("City: %s\n", node->cityName);
+        printf("Population: %d\n", node->population);
+        printf("Economic Strength (Budget: %.2f, Income: %.2f, Spending: %.2f)\n",
+               node->economicStrength.budget, node->economicStrength.income, node->economicStrength.spending);
         printf("\n");
+        displayCities(node->right);
+    }
+}
+
+// Function to find the city with the highest economic strength
+CITYRECORD* findRichestCity(CITYRECORD* node, CITYRECORD* richest) {
+    if (node != NULL) {
+        if (node->economicStrength.income - node->economicStrength.spending >
+            richest->economicStrength.income - richest->economicStrength.spending)
+            richest = node;
+
+        richest = findRichestCity(node->left, richest);
+        richest = findRichestCity(node->right, richest);
     }
 
-    // Open the file in write mode
+    return richest;
+}
+
+int main() {
     FILE* file = fopen("country_records.txt", "w");
-
     if (file == NULL) {
         printf("Error opening file.\n");
         return 1;
     }
 
-    // Write country records to the file
-    writeRecordsToFile(file, root);
+    CITYRECORD* root = NULL;
+    int choice;
+    char cityName[50];
+    int population;
+    double budget, income, spending;
 
-    // Close the file
-    fclose(file);
-
-    // Open the file in read mode
-    file = fopen("country_records.txt", "r");
-
-    if (file == NULL) {
-        printf("Error opening file.\n");
-        return 1;
-    }
-
-    // Read country records from the file
-    root = readRecordsFromFile(file);
-
-    // Close the file
-    fclose(file);
-
-    while (1) {
-        printf("1. Find the richest country\n");
-        printf("2. Display all countries\n");
-        printf("3. Exit\n");
+    do {
+        printf("1. Add city record\n");
+        printf("2. Display city records\n");
+        printf("3. Find the city with the highest economic strength\n");
+        printf("4. Write city records to file\n");
+        printf("5. Read city records from file\n");
+        printf("6. Exit\n");
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
         switch (choice) {
             case 1:
+                printf("Enter city name: ");
+                scanf("%s", cityName);
+                printf("Enter population: ");
+                scanf("%d", &population);
+                printf("Enter budget: ");
+                scanf("%lf", &budget);
+                printf("Enter income: ");
+                scanf("%lf", &income);
+                printf("Enter spending: ");
+                scanf("%lf", &spending);
+                root = insertCity(root, cityName, population, budget, income, spending);
+                break;
+
+            case 2:
+                displayCities(root);
+                break;
+
+            case 3:
                 if (root != NULL) {
-                    COUNTRYRECORD* richestCountry = findRichestCountry(root, root);
-                    printf("Richest Country: %s\n", richestCountry->countryName);
-                    printf("Population: %d\n", richestCountry->population);
-                    printf("Budget: %.2lf\n", richestCountry->economicStrength.budget);
-                    printf("Income: %.2lf\n", richestCountry->economicStrength.income);
-                    printf("Spending: %.2lf\n\n", richestCountry->economicStrength.spending);
+                    CITYRECORD* richestCity = findRichestCity(root, root);
+                    printf("City with the highest economic strength:\n");
+                    printf("City: %s\n", richestCity->cityName);
+                    printf("Population: %d\n", richestCity->population);
+                    printf("Economic Strength (Budget: %.2f, Income: %.2f, Spending: %.2f)\n",
+                           richestCity->economicStrength.budget,
+                           richestCity->economicStrength.income,
+                           richestCity->economicStrength.spending);
+                    printf("\n");
                 } else {
-                    printf("No countries found.\n\n");
+                    printf("No city records found.\n");
                 }
                 break;
-            case 2:
-                printf("All Countries:\n");
-                displayCountries(root);
+
+            case 4:
+                writeRecordsToFile(file, root);
+                printf("City records written to file.\n");
                 break;
-            case 3:
-                freeTree(root);
-                printf("Exiting...\n");
-                return 0;
+
+            case 5:
+                fclose(file);
+                file = fopen("country_records.txt", "r");
+                if (file == NULL) {
+                    printf("Error opening file.\n");
+                    return 1;
+                }
+                root = readRecordsFromFile(file, root);
+                printf("City records read from file.\n");
+                break;
+
+            case 6:
+                fclose(file);
+                printf("Exiting program.\n");
+                break;
+
             default:
-                printf("Invalid choice. Please try again.\n\n");
+                printf("Invalid choice. Please try again.\n");
                 break;
         }
-    }
+
+        printf("\n");
+    } while (choice != 6);
+
+    return 0;
 }
-
-
-
